@@ -1,0 +1,97 @@
+<script setup lang="ts">
+
+
+import {ref} from "vue";
+
+const drawer = defineModel({
+  default: false
+})
+
+
+const menuIcons = {
+  html: 'mdi-language-html5',
+  js: 'mdi-nodejs',
+  pdf: 'mdi-file-pdf-box',
+  png: 'mdi-file-image',
+  mov: 'mdi-video-outline',
+  mp4: 'mdi-video-outline',
+  fileChartOutLine: 'mdi-file-chart-outline',
+  home: 'mdi-home-outline'
+}
+
+const menuList = [
+  {
+    to: "/hello",
+    title: "Home",
+    icon: menuIcons.home,
+  },
+  {
+    spacer: true
+  },
+  {
+    subtitle: "Report",
+  },
+  {
+    to: "/taxpayer",
+    title: "Taxpayer",
+    icon: 'mdi-building',
+  },
+]
+
+</script>
+
+<template>
+
+
+  <v-navigation-drawer
+      v-model="drawer"
+      temporary
+  >
+    <v-list
+        :lines="false"
+        density="compact"
+        nav
+    >
+      <template
+          v-for="(item, i) in menuList"
+          :key="i"
+      >
+        <template v-if="item.subtitle">
+          <v-list-item-subtitle>
+            {{ item.subtitle }}
+          </v-list-item-subtitle>
+        </template>
+        <template v-else-if="item.spacer">
+          <div
+              class="h-4"
+          >
+          </div>
+        </template>
+        <RouterLink
+            v-else
+            exactActiveClass="font-black text-red-500"
+            :to="item.to!">
+
+          <v-list-item
+              :value="item"
+              color="primary"
+          >
+            <template v-slot:prepend>
+              <v-icon :icon="item.icon"></v-icon>
+            </template>
+            <v-list-item-title>
+              {{
+              item.title
+              }}
+            </v-list-item-title>
+          </v-list-item>
+        </RouterLink>
+      </template>
+    </v-list>
+  </v-navigation-drawer>
+
+</template>
+
+<style scoped>
+
+</style>

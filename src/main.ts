@@ -17,9 +17,10 @@ import App from './App.vue'
 import 'unfonts.css'
 import './styles/tailwind.css'
 import './styles/main.scss'
+import {router} from "@/routes/routes.ts";
 
 const app = createApp(App)
 
 registerPlugins(app)
-
+app.use(router)
 app.mount('#app')
