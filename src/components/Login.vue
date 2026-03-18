@@ -1,0 +1,102 @@
+<script setup lang="ts">
+import {ref} from 'vue'
+
+const visible = ref(false)
+
+const form = ref()
+
+const username = ref("")
+const password = ref("")
+async function onSubmit() {
+  const { valid } = await form.value.validate()
+
+  if (valid) alert('Form is valid')
+
+}
+</script>
+
+<template>
+  <v-container class="grid place-content-center min-h-screen">
+    <v-container>
+      <v-img
+          class="mx-auto my-6"
+          max-width="228"
+          src="https://cdn.vuetifyjs.com/docs/images/logos/vuetify-logo-v3-slim-text-light.svg"
+      ></v-img>
+
+      <v-card
+          class="mx-auto pa-12 py-8 px-8"
+          elevation="3"
+          max-width="448"
+          rounded="lg"
+      >
+        <div class="text-body-large text-medium-emphasis">{{$t("ui.username")}}</div>
+
+        <v-form ref="form">
+
+          <v-text-field
+              v-model="username"
+              density="compact"
+              placeholder="Email address"
+              prepend-inner-icon="mdi-email-outline"
+              variant="outlined"
+          ></v-text-field>
+
+          <div class="text-body-large text-medium-emphasis d-flex align-center justify-space-between">
+            {{$t("ui.password")}}
+          </div>
+
+          <v-text-field
+              v-model="password"
+              :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
+              :type="visible ? 'text' : 'password'"
+              density="compact"
+              placeholder="Enter your password"
+              prepend-inner-icon="mdi-lock-outline"
+              variant="outlined"
+              @click:append-inner="visible = !visible"
+          ></v-text-field>
+
+          <v-card
+              class="mb-6"
+              color="surface-variant"
+              variant="tonal"
+          >
+            <v-card-text class="text-medium-emphasis text-body-small">
+              Warning: After 3 consecutive failed login attempts, you account will be temporarily locked for three
+              hours.
+              If you must login now, you can also click "Forgot login password?" below to reset the login password.
+            </v-card-text>
+          </v-card>
+
+          <v-btn
+              class="mb-2"
+              color="blue"
+              size="large"
+              variant="tonal"
+              block
+              @click="onSubmit"
+          >
+            Log In
+          </v-btn>
+
+        </v-form>
+        <v-card-text class="text-center">
+          <a
+              class="text-blue text-decoration-none"
+              href="#"
+              rel="noopener noreferrer"
+              target="_blank"
+          >
+            Sign up now
+            <v-icon icon="mdi-chevron-right"></v-icon>
+          </a>
+        </v-card-text>
+      </v-card>
+    </v-container>
+  </v-container>
+</template>
+
+<style scoped>
+
+</style>

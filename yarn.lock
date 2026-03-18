@@ -1093,6 +1093,11 @@ pinia@^3.0.4:
   dependencies:
     "@vue/devtools-api" "^7.7.7"
 
+pocketbase@^0.26.8:
+  version "0.26.8"
+  resolved "https://registry.yarnpkg.com/pocketbase/-/pocketbase-0.26.8.tgz#1b800b5f69f2ab08c3e3da45fce25f45c6724c45"
+  integrity sha512-aQ/ewvS7ncvAE8wxoW10iAZu6ElgbeFpBhKPnCfvRovNzm2gW8u/sQNPGN6vNgVEagz44kK//C61oKjfa+7Low==
+
 postcss@^8.5.8:
   version "8.5.8"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.5.8.tgz#6230ecc8fb02e7a0f6982e53990937857e13f399"
