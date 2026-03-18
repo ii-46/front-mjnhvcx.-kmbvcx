@@ -19,6 +19,9 @@ import './styles/tailwind.css'
 import './styles/main.scss'
 import {router} from "@/routes/routes.ts";
 
+import 'vue3-toastify/dist/index.css';
+
+
 const app = createApp(App)
 
 registerPlugins(app)

@@ -1,18 +1,32 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {onMounted, ref} from 'vue'
+import {toast} from "vue3-toastify";
+import {useRules} from 'vuetify/labs/rules'
+import {pb} from "@/pocketbase";
 
+const rules = useRules()
 const visible = ref(false)
 
 const form = ref()
+const isLogin = defineModel("isLogin", {default: false})
 
 const username = ref("")
 const password = ref("")
-async function onSubmit() {
-  const { valid } = await form.value.validate()
 
-  if (valid) alert('Form is valid')
+async function onSubmit() {
+  const {valid} = await form.value.validate()
+  pb.authStore.clear();
+  if (!valid) return;
+  const authData = await pb.collection('users').authWithPassword(username.value, password.value).catch(console.log);
+  console.log(authData)
+  if (pb.authStore.isValid) {
+    toast.success("Login successful")
+  } else {
+    toast.error("Username or Password aren't valid")
+  }
 
 }
+
 </script>
 
 <template>
@@ -30,7 +44,7 @@ async function onSubmit() {
           max-width="448"
           rounded="lg"
       >
-        <div class="text-body-large text-medium-emphasis">{{$t("ui.username")}}</div>
+        <div class="text-body-large text-medium-emphasis">{{ $t("ui.username") }}</div>
 
         <v-form ref="form">
 
@@ -40,10 +54,11 @@ async function onSubmit() {
               placeholder="Email address"
               prepend-inner-icon="mdi-email-outline"
               variant="outlined"
+              :rules="[rules.required()]"
           ></v-text-field>
 
           <div class="text-body-large text-medium-emphasis d-flex align-center justify-space-between">
-            {{$t("ui.password")}}
+            {{ $t("ui.password") }}
           </div>
 
           <v-text-field
@@ -55,6 +70,7 @@ async function onSubmit() {
               prepend-inner-icon="mdi-lock-outline"
               variant="outlined"
               @click:append-inner="visible = !visible"
+              :rules="[rules.required()]"
           ></v-text-field>
 
           <v-card
@@ -81,17 +97,17 @@ async function onSubmit() {
           </v-btn>
 
         </v-form>
-        <v-card-text class="text-center">
-          <a
-              class="text-blue text-decoration-none"
-              href="#"
-              rel="noopener noreferrer"
-              target="_blank"
-          >
-            Sign up now
-            <v-icon icon="mdi-chevron-right"></v-icon>
-          </a>
-        </v-card-text>
+        <!--        <v-card-text class="text-center">-->
+        <!--          <a-->
+        <!--              class="text-blue text-decoration-none"-->
+        <!--              href="#"-->
+        <!--              rel="noopener noreferrer"-->
+        <!--              target="_blank"-->
+        <!--          >-->
+        <!--            Sign up now-->
+        <!--            <v-icon icon="mdi-chevron-right"></v-icon>-->
+        <!--          </a>-->
+        <!--        </v-card-text>-->
       </v-card>
     </v-container>
   </v-container>

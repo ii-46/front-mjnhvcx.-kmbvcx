@@ -60,6 +60,9 @@ onMounted(async () => {
   try {
 
     console.log("is valid: ", pb.authStore.isValid)
+    if (pb.authStore.isValid) {
+      isLogin.value = true
+    }
   } catch (e) {
     console.log(e)
   } finally {
