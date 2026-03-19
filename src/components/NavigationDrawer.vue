@@ -32,7 +32,18 @@ const menuList = [
     spacer: true
   },
   {
-    subtitle: "Report",
+    subtitle: "Administration",
+  },
+  {
+    to: "/administration/manage-user",
+    title: "Taxpayer",
+    icon: 'mdi-building',
+  },
+  {
+    spacer: true
+  },
+  {
+    subtitle: "report",
   },
   {
     to: "/taxpayer",
@@ -56,6 +67,7 @@ async function logout() {
       v-model="drawer"
       temporary
   >
+
     <v-list
         :lines="false"
         density="compact"
@@ -78,12 +90,13 @@ async function logout() {
         </template>
         <RouterLink
             v-else
-            exactActiveClass="font-black text-red-500"
-            :to="item.to!">
+            :to="item.to!"
+        >
 
           <v-list-item
               :value="item"
               color="primary"
+              :active="router.currentRoute.value.path === item.to"
           >
             <template v-slot:prepend>
               <v-icon :icon="item.icon"></v-icon>
