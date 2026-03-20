@@ -5,6 +5,7 @@ import {computed, onMounted, onUnmounted} from "vue";
 import {displayDate, displayTimestamp} from "@/utils/displayFormaters.ts";
 import {useTheme} from "vuetify/framework";
 import CreateUserDialog from "@/components/users/CreateUserDialog.vue";
+import EditUserDialog from "@/components/users/EditUserDialog.vue";
 
 const them = useTheme()
 const usersStore = useUsersStore();
@@ -81,11 +82,9 @@ onUnmounted(() => {
           <template v-slot:item.no="{ value , index}">
             {{ index + 1 }}
           </template>
-          <template v-slot:item.actions="{ value , index}">
+          <template v-slot:item.actions="{ value , index, item}">
             <div class="flex justify-evenly gap-1">
-              <v-btn color="secondary" variant="outlined" size="small" rounded>
-                <v-icon>mdi-pencil</v-icon>
-              </v-btn>
+            <EditUserDialog :id="item.id"/>
               <!--            <v-btn variant="outlined" size="small">-->
               <!--              <v-icon>mdi-pencil</v-icon>-->
               <!--            </v-btn>-->

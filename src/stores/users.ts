@@ -57,5 +57,28 @@ export const useUsersStore = defineStore("users", {
         fetchGroupList: async function () {
             return await pb.collection('group').getFullList({});
         },
+        fetchUser: async function (id: string) {
+            return await pb.collection('users').getOne(id, {
+                expand: "group_id,company_id"
+            });
+        },
+        async updateUser(id: string, data: {
+            email: string,
+            name: string,
+            group_id: string,
+            phone: string,
+            company_id: string
+
+        }) {
+            const payload = {
+                "email": data.email,
+                "name": data.name,
+                "group_id": data.group_id,
+                "phone": data.phone,
+                "company_id": data.company_id,
+            };
+
+            return await pb.collection('users').update(id, payload)
+        },
     }
 });

@@ -17,15 +17,22 @@ export default createVuetify({
 
     },
     aliases: {
-       MyAddBtn: VBtn
+        MyAddBtn: VBtn,
+        MyEditBtn: VBtn
     },
     defaults: {
         VBtn: {variant: 'evaluated',},
         VTextField: {variant: 'outlined', density: 'compact'},
-        VAutocomplete: { variant: 'outlined', density: 'compact'},
+        VAutocomplete: {variant: 'outlined', density: 'compact'},
         MyAddBtn: {
             variant: 'evaluated',
             color: 'secondary'
+        },
+        MyEditBtn: {
+            variant: 'outlined',
+            color: 'secondary',
+            size: 'small',
+            rounded: true,
         }
     }
 })
