@@ -9,7 +9,7 @@
         <v-btn
             :prepend-icon="theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'"
             slim
-            @click="onClick"
+            @click="appstore.onToggleTheme"
         ></v-btn>
       </v-app-bar>
       <navigation-drawer v-model="drawer"></navigation-drawer>
@@ -45,17 +45,12 @@ import {useAppStore} from "@/stores/app.ts";
 import {storeToRefs} from "pinia";
 
 
-const theme = ref('light')
-
-function onClick() {
-  theme.value = theme.value === 'light' ? 'dark' : 'light'
-}
-
 const drawer = ref(true)
 
 // menu list
 const appstore = useAppStore()
-const {preloading, isLogin} = storeToRefs(appstore)
+const {preloading, isLogin, theme} = storeToRefs(appstore)
+
 
 let unsubAuthStore: (() => void) | null = null;
 onMounted(async () => {

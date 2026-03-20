@@ -34,3 +34,4 @@ yarn build
 ### Pocketbase collection API rules
 - [ ] Users 
 - [ ] Groups
+- [ ] Company

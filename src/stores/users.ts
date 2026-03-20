@@ -21,11 +21,15 @@ export const useUsersStore = defineStore("users", {
         },
         fetchUsersList: async function () {
             return await pb.collection('users').getFullList({
-                expand: "group_id"
+                expand: "group_id,company_id"
             });
         },
-        unsub: async () => {
+        unsub: async function() {
             await pb.collection('users').unsubscribe('*');
+           this.users = [];
+        },
+        async createUser() {
+
         }
     }
 });
