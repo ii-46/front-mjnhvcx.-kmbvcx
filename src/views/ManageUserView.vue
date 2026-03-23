@@ -15,7 +15,7 @@ const tableHeaders = computed(() => ([
   {
     title: 'No.',
     key: 'no',
-    align: 'left'
+    align: 'center'
   },
   {
     title: 'ID',
@@ -73,7 +73,6 @@ onUnmounted(() => {
 
 <template>
   <v-app>
-
     <v-container>
       <Breadcrumbs></Breadcrumbs>
       <div class="flex justify-between">

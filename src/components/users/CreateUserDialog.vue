@@ -62,8 +62,8 @@ watch(dialog, async (newValue) => {
       state.companies = [];
       state.groups = [];
     })
+    onClose()
   }
-  onClose()
 })
 </script>
 
@@ -87,7 +87,9 @@ watch(dialog, async (newValue) => {
         prepend-icon="mdi-account"
         title="New User"
     >
-      <v-form ref="form">
+        <v-form ref="form"
+                @submit.prevent="onSubmit"
+        >
 
         <v-card-text>
           <v-row density="comfortable">
@@ -180,7 +182,7 @@ watch(dialog, async (newValue) => {
               color="primary"
               text="Save"
               variant="elevated"
-              @click="onSubmit"
+              type="submit"
               :loading="loading"
           ></v-btn>
         </v-card-actions>

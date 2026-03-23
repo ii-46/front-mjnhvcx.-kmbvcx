@@ -4,6 +4,11 @@ import {useRules} from 'vuetify/labs/rules'
 import {useUsersStore} from "@/stores/users.ts";
 import {toast} from "vue3-toastify";
 
+
+const dialogInfo = {
+  cardTitle: "Update user",
+}
+
 const props = defineProps({
   id: {
     required: true,
@@ -37,7 +42,7 @@ async function onSubmit() {
       group_id: group.value?.id,
       company_id: company.value?.id
     });
-    toast.success("User created successful")
+    toast.success("User updated successful")
     dialog.value = false
   } catch (e) {
     toast.error(e)
@@ -100,9 +105,11 @@ watch(dialog, async (newValue) => {
 
     <v-card
         prepend-icon="mdi-account"
-        title="New User"
+        :title="dialogInfo.cardTitle"
     >
-      <v-form ref="form">
+      <v-form ref="form"
+              @submit.prevent="onSubmit"
+      >
 
         <v-card-text>
           <v-row density="comfortable">
@@ -196,7 +203,7 @@ watch(dialog, async (newValue) => {
               color="primary"
               text="Save"
               variant="elevated"
-              @click="onSubmit"
+              type="submit"
               :loading="loading"
           ></v-btn>
         </v-card-actions>
