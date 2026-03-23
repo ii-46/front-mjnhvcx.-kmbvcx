@@ -18,7 +18,8 @@ export default createVuetify({
     },
     aliases: {
         MyAddBtn: VBtn,
-        MyEditBtn: VBtn
+        MyEditBtn: VBtn,
+        MyDeleteBtn: VBtn
     },
     defaults: {
         VBtn: {variant: 'evaluated',},
@@ -31,6 +32,12 @@ export default createVuetify({
         MyEditBtn: {
             variant: 'outlined',
             color: 'secondary',
+            size: 'small',
+            rounded: true,
+        },
+        MyDeleteBtn: {
+            variant: 'outlined',
+            color: 'error',
             size: 'small',
             rounded: true,
         }

@@ -6,6 +6,7 @@ import {displayDate, displayTimestamp} from "@/utils/displayFormaters.ts";
 import {useTheme} from "vuetify/framework";
 import CreateUserDialog from "@/components/users/CreateUserDialog.vue";
 import EditUserDialog from "@/components/users/EditUserDialog.vue";
+import DeleteUserDialog from "@/components/users/DeleteUserDialog.vue";
 
 const them = useTheme()
 const usersStore = useUsersStore();
@@ -25,7 +26,13 @@ const tableHeaders = computed(() => ([
     title: 'Name',
     key: 'name',
     align: 'left'
-  }, {
+  },
+  {
+    title: 'Email',
+    key: 'email',
+    align: 'left'
+  },
+  {
     title: 'Phone',
     key: 'phone',
     align: 'left'
@@ -85,6 +92,7 @@ onUnmounted(() => {
           <template v-slot:item.actions="{ value , index, item}">
             <div class="flex justify-evenly gap-1">
             <EditUserDialog :id="item.id"/>
+              <DeleteUserDialog :id="item.id" :name="item.name"/>
               <!--            <v-btn variant="outlined" size="small">-->
               <!--              <v-icon>mdi-pencil</v-icon>-->
               <!--            </v-btn>-->

@@ -80,5 +80,8 @@ export const useUsersStore = defineStore("users", {
 
             return await pb.collection('users').update(id, payload)
         },
+        async deleteUser(id: string) {
+            return await pb.collection('users').delete(id)
+        }
     }
 });
