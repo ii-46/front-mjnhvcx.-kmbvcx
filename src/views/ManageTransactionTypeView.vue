@@ -11,8 +11,10 @@ import {useDeviceStore} from "@/stores/device.ts";
 import CreateDeviceDialog from "@/components/inventory/device/CreateDeviceDialog.vue";
 import EditDeviceDialog from "@/components/inventory/device/EditDeviceDialog.vue";
 import DeleteDeviceDialog from "@/components/inventory/device/DeleteDeviceDialog.vue";
+import {useTransactionTypeStore} from "@/stores/transaction_type.ts";
+import CreateTransactionDialog from "@/components/inventory/transaction/CreateTransactionDialog.vue";
 
-const deviceStore = useDeviceStore();
+const transactionTypeStore = useTransactionTypeStore();
 const tableHeaders = computed(() => ([
   {
     title: 'No.',
@@ -29,11 +31,7 @@ const tableHeaders = computed(() => ([
     key: 'name',
     align: 'left'
   },
-  {
-    title: 'SN start with',
-    key: 'sn_start_with',
-    align: 'left'
-  },
+
   {
     title: 'Created At',
     key: 'created',
@@ -48,11 +46,11 @@ const tableHeaders = computed(() => ([
   }
 ]))
 onMounted(() => {
-  deviceStore.listenToDevices()
+  transactionTypeStore.listenToTransactions()
 })
 
 onUnmounted(() => {
-  deviceStore.unsubDevice()
+  transactionTypeStore.unsubTransactions()
 })
 </script>
 
@@ -61,21 +59,21 @@ onUnmounted(() => {
     <v-container>
       <Breadcrumbs></Breadcrumbs>
       <div class="flex justify-between">
-        <h1 class="text-2xl font-semibold py-3">Device Management</h1>
+        <h1 class="text-2xl font-semibold py-3">Transaction Type Management</h1>
         <div class="flex align-center">
-          <CreateDeviceDialog/>
+          <CreateTransactionDialog/>
         </div>
       </div>
 
       <v-card>
-        <v-data-table :items="deviceStore.devices" :headers="tableHeaders">
+        <v-data-table :items="transactionTypeStore.transactionType" :headers="tableHeaders">
           <template v-slot:item.no="{ value , index}">
             {{ index + 1 }}
           </template>
           <template v-slot:item.actions="{ value , index, item}">
             <div class="flex justify-center gap-1">
-              <EditDeviceDialog :id="item.id"/>
-              <DeleteDeviceDialog :id="item.id" :name="item.name"/>
+<!--              <EditDeviceDialog :id="item.id"/>-->
+<!--              <DeleteDeviceDialog :id="item.id" :name="item.name"/>-->
             </div>
           </template>
         </v-data-table>
