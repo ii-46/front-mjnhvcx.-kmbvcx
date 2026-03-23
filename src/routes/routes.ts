@@ -4,6 +4,7 @@ import HelloWorld from '@/components/HelloWorld.vue'
 import ManageUserView from "@/views/ManageUserView.vue";
 import ManageGroupView from "@/views/ManageGroupView.vue";
 import ManageDeviceView from "@/views/ManageDeviceView.vue";
+import ManageTransactionTypeView from "@/views/ManageTransactionTypeView.vue";
 
 const routes = [
     {path: '', component: HelloWorld},
@@ -20,6 +21,7 @@ const routes = [
         children: [
             {path: '', redirect: "inventory/manage-device"},
             {path: 'manage-device', component: ManageDeviceView},
+            {path: 'manage-transaction-type', component: ManageTransactionTypeView},
         ]
     },
     {path: '/taxpayer', component: HelloWorld},

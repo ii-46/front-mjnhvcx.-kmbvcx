@@ -54,9 +54,17 @@ const menuList = [
     subtitle: "Inventory",
   },
   {
+    spacer: true
+  },
+  {
     to: "/inventory/manage-device",
     title: "Devices",
     icon: 'mdi-monitor-shimmer',
+  },
+  {
+    to: "/inventory/manage-transaction-type",
+    title: "Transaction Type",
+    icon: 'mdi-format-list-bulleted-type',
   },
 ]
 
