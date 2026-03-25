@@ -4,10 +4,12 @@ import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import {VDateInput} from "vuetify/labs/components";
 import moment from "moment";
 import {router} from "@/routes/routes.ts";
-import {onMounted, onUnmounted, ref, watch} from "vue";
+import {onMounted, onUnmounted, ref, toRaw, watch} from "vue";
 import {useDeviceStore} from "@/stores/device.ts";
 import type {RecordModel} from "pocketbase";
 import {read, utils as xlsxUtils} from "xlsx";
+import {toast} from "vue3-toastify";
+import {pb} from "@/pocketbase";
 
 const deviceStore = useDeviceStore()
 
@@ -27,12 +29,15 @@ const xlsxFileUploaded = ref({} as {
 watch(deviceTypeSelected, (newValue) => {
   if (newValue.length > 0) {
     for (const newValueElement of newValue) {
+      if (xlsxFileUploaded.value[newValueElement.id]) continue;
       xlsxFileUploaded.value[newValueElement.id] = {
-        deviceType: newValueElement,
+        deviceType: toRaw(newValueElement),
         file: null,
         sn: []
-      }
+      };
+      processed.value = false;
     }
+
   }
 })
 
@@ -49,18 +54,45 @@ onUnmounted(() => {
 const loading = ref(false)
 
 async function onSubmit() {
-  loading.value = true
-  // const output = await processSnXlsxFile()
-  // snList.value = output
+  // if (Object.values(xlsxFileUploaded.value)
   for (const item of deviceTypeSelected.value) {
-    if (xlsxFileUploaded.value[item.id].file) {
-      xlsxFileUploaded.value[item.id].sn = await processSnXlsxFile(xlsxFileUploaded.value[item.id].file!)
-      console.log(xlsxFileUploaded.value[item.id].sn )
+    if (xlsxFileUploaded.value[item.id].sn.length === 0) {
+      toast.warning("Please input valid file and click process again")
+      return
     }
   }
-  loading.value = false
+  const payload = Object.values(toRaw(xlsxFileUploaded.value)).map(i => ({
+    device_type_id: i.deviceType.id,
+    sn: i.sn
+  }))
+  console.log('payload', payload)
+  await pb.send("api/etax/import-devices", {
+    credentials: "include",
+    method: "POST"
+  })
 }
 
+const processed = ref(false)
+
+async function onProcessFiles() {
+  try {
+    loading.value = true
+    for (const item of deviceTypeSelected.value) {
+      if (xlsxFileUploaded.value[item.id].file) {
+        xlsxFileUploaded.value[item.id].sn = await processSnXlsxFile(xlsxFileUploaded.value[item.id].file!)
+        console.log(xlsxFileUploaded.value[item.id].sn)
+        processed.value = true
+      } else {
+        toast.warning("Please upload sn list for device: " + item["name"])
+        processed.value = false
+      }
+    }
+  } catch (e) {
+    toast.error(e)
+  } finally {
+    loading.value = false
+  }
+}
 
 async function processSnXlsxFile(file: File): Promise<string[]> {
   const fileContent = read(await file.bytes())
@@ -146,8 +178,33 @@ async function validateSn(deviceType: RecordModel, input: string): boolean {
                   v-model="xlsxFileUploaded[item['id']].file"
                   accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   label="File input*"
+                  @update:model-value="()=> processed = false"
               ></v-file-input>
               <small class="text-body-small text-medium-emphasis">*indicates required field</small>
+
+              <div v-if="processed && !loading">
+                {{ xlsxFileUploaded[item['id']].sn }}
+                <v-data-table-virtual
+                    :items="xlsxFileUploaded[item['id']].sn.map(i => ({
+                     sn: i,
+                     device_type: xlsxFileUploaded[item['id']].deviceType['name']
+                    }))"
+                    :headers="[
+                        {title: 'No. ', key: 'no', align: 'end'},
+                        {title: 'Serial Number', key: 'sn', align: 'center'},
+                        {title: 'Device Type', key: 'device_type', align: 'center'}
+                        ]"
+                    height="400"
+                    fixed-header
+                    fixed-footer
+                >
+                  <template v-slot:[`item.no`]="{index}">
+                    {{ index + 1 }}
+                  </template>
+                  <template v-slot:tfoot>
+                  </template>
+                </v-data-table-virtual>
+              </div>
             </v-container>
           </v-card>
         </template>
@@ -160,11 +217,20 @@ async function validateSn(deviceType: RecordModel, input: string): boolean {
           <!--          >-->
           <!--            Submit-->
           <!--          </ComfirmImportSnListDialog>-->
-          <v-btn
-              type="submit"
-              :disabled="deviceTypeSelected.length === 0"
-              variant="elevated" color="primary" size="large">Submit
-          </v-btn>
+          <div class="flex gap-4">
+
+            <v-btn
+                :disabled="deviceTypeSelected.length === 0 || processed"
+                variant="outlined" color="primary" size="large"
+                @click="onProcessFiles"
+            >Process
+            </v-btn>
+            <v-btn
+                type="submit"
+                :disabled="deviceTypeSelected.length === 0 || !processed"
+                variant="elevated" color="primary" size="large">Submit
+            </v-btn>
+          </div>
         </div>
       </v-form>
     </v-container>
