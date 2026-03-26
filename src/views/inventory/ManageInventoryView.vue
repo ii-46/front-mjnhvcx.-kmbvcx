@@ -8,11 +8,6 @@ import {useInventoryStore} from "@/stores/inventory.ts";
 const inventoryStore = useInventoryStore();
 const tableHeaders = computed(() => ([
   {
-    title: 'No.',
-    key: 'no',
-    align: 'center'
-  },
-  {
     title: 'ID',
     key: 'id',
     align: 'left'
@@ -23,10 +18,16 @@ const tableHeaders = computed(() => ([
     align: 'left'
   },
   {
+    title: 'Lot Date',
+    key: 'lot_date',
+    align: 'center',
+    value: (item) => displayDate(item["lot_date"])
+  },
+  {
     title: 'Owner',
     key: 'expend.user_id',
     align: 'center',
-    value: (item) => item.user_id?.name || "Archived Inventory"
+    value: (item) => item.expand?.user_id?.name || "Archived Inventory"
   },
 
   {
@@ -39,7 +40,7 @@ const tableHeaders = computed(() => ([
     title: 'Created At',
     key: 'created',
     align: 'center',
-    value: (item) => displayDate(item)
+    value: (item) => displayDate(item["created"])
   },
   {
     title: 'Actions',

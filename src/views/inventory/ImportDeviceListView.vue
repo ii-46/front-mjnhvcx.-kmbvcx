@@ -7,7 +7,7 @@ import {router} from "@/routes/routes.ts";
 import {onMounted, onUnmounted, ref, toRaw, watch} from "vue";
 import {useDeviceStore} from "@/stores/device.ts";
 import type {RecordModel} from "pocketbase";
-import {read, utils as xlsxUtils} from "xlsx";
+import {read, utils as xlsxUtils, writeFile} from "xlsx";
 import {toast} from "vue3-toastify";
 import {pb} from "@/pocketbase";
 
@@ -37,15 +37,14 @@ watch(deviceTypeSelected, (newValue) => {
       };
       processed.value = false;
     }
-
+  } else {
+    xlsxFileUploaded.value = {}
   }
 })
 
 onMounted(async () => {
   await deviceStore.listenToDeviceTypes()
-
-  inventoryName.value = `LOT_` + moment().format('DD_MM_YYYY');
-  lotDate.value = moment().toDate();
+  await initForm()
 })
 onUnmounted(() => {
   deviceStore.unsubDeviceTypes()
@@ -61,15 +60,30 @@ async function onSubmit() {
       return
     }
   }
-  const payload = Object.values(toRaw(xlsxFileUploaded.value)).map(i => ({
-    device_type_id: i.deviceType.id,
-    sn: i.sn
-  }))
-  console.log('payload', payload)
-  await pb.send("api/etax/import-devices", {
-    credentials: "include",
-    method: "POST"
-  })
+  try {
+    loading.value = true
+    const payload = {
+      data: Object
+          .values(toRaw(xlsxFileUploaded.value)).map(i => ({
+            device_type_id: i.deviceType.id,
+            sn: i.sn,
+          })),
+      lot_date: lotDate.value,
+      lot_name: inventoryName.value
+    }
+
+    await pb.send("api/etax/import-devices", {
+      credentials: "include",
+      method: "POST",
+      body: payload
+    })
+    toast.success("Imported Device list successful")
+    await initForm()
+  } catch (e) {
+    toast.error(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 const processed = ref(false)
@@ -88,7 +102,7 @@ async function onProcessFiles() {
       }
     }
   } catch (e) {
-    toast.error(e)
+    toast.error(JSON.stringify(e))
   } finally {
     loading.value = false
   }
@@ -112,17 +126,25 @@ async function processSnXlsxFile(file: File): Promise<string[]> {
 }
 
 
-async function validateSn(deviceType: RecordModel, input: string): boolean {
-  const content: string = input.toString();
-  const length =
-      content.trim().length;
-  const startWith = content.startsWith(deviceType["sn_start_with"]);
-  if (length === deviceType["length"] && startWith) {
-    return true
-  } else {
-    return false
-  }
+async function initForm() {
+  inventoryName.value = `LOT_` + moment().format('DD_MM_YYYY_hmm');
+  lotDate.value = moment().toDate();
+  deviceTypeSelected.value = []
 }
+
+
+async function downloadTemplateSheets(name: string) {
+  const bookTemplate = xlsxUtils.book_new();
+  const sheetTemplate = xlsxUtils.json_to_sheet([], {
+    header: ["SN"]
+  })
+  xlsxUtils.book_append_sheet(bookTemplate, sheetTemplate)
+
+  writeFile(bookTemplate, name + ".xlsx", {
+    compression: true
+  })
+}
+
 </script>
 
 <template>
@@ -168,7 +190,7 @@ async function validateSn(deviceType: RecordModel, input: string): boolean {
               <div class="flex justify-between pb-3">
                 <label>Upload XLSX for Device type: <span class="font-bold">{{ item.name }}</span></label>
                 <div>
-                  <v-btn variant="outlined" size="small" color="secondary">
+                  <v-btn variant="outlined" size="small" color="secondary" @click="downloadTemplateSheets(item.name)">
                     <v-icon>mdi-download</v-icon>
                     Download Template
                   </v-btn>
@@ -183,7 +205,6 @@ async function validateSn(deviceType: RecordModel, input: string): boolean {
               <small class="text-body-small text-medium-emphasis">*indicates required field</small>
 
               <div v-if="processed && !loading">
-                {{ xlsxFileUploaded[item['id']].sn }}
                 <v-data-table-virtual
                     :items="xlsxFileUploaded[item['id']].sn.map(i => ({
                      sn: i,
@@ -204,6 +225,9 @@ async function validateSn(deviceType: RecordModel, input: string): boolean {
                   <template v-slot:tfoot>
                   </template>
                 </v-data-table-virtual>
+                <div class="flex justify-end mt-1">
+                  <b>Total items</b>: {{ xlsxFileUploaded[item['id']].sn.length }}
+                </div>
               </div>
             </v-container>
           </v-card>
@@ -211,7 +235,9 @@ async function validateSn(deviceType: RecordModel, input: string): boolean {
         <v-spacer class="h-6">
         </v-spacer>
         <div class="flex justify-between">
-          <v-btn variant="outlined" size="large" @click="router.back()">Cancel</v-btn>
+          <v-btn
+              :disabled="loading"
+              variant="outlined" size="large" @click="router.back()">Cancel</v-btn>
           <!--          <ComfirmImportSnListDialog-->
           <!--              :disabled="deviceTypeSelected.length === 0"-->
           <!--          >-->
@@ -220,7 +246,7 @@ async function validateSn(deviceType: RecordModel, input: string): boolean {
           <div class="flex gap-4">
 
             <v-btn
-                :disabled="deviceTypeSelected.length === 0 || processed"
+                :disabled="deviceTypeSelected.length === 0 || processed || loading"
                 variant="outlined" color="primary" size="large"
                 @click="onProcessFiles"
             >Process
@@ -228,6 +254,7 @@ async function validateSn(deviceType: RecordModel, input: string): boolean {
             <v-btn
                 type="submit"
                 :disabled="deviceTypeSelected.length === 0 || !processed"
+                :loading="loading"
                 variant="elevated" color="primary" size="large">Submit
             </v-btn>
           </div>
