@@ -5,6 +5,10 @@ import type {RecordModel} from "pocketbase";
 export const useDeviceStore = defineStore("devices", {
     state: () => ({
         deviceTypes: [] as RecordModel[],
+        devices: [] as RecordModel[],
+        filterDevice: {} as {
+            [k: string]: string
+        },
     }),
     actions: {
         listenToDeviceTypes: async function () {
@@ -54,5 +58,27 @@ export const useDeviceStore = defineStore("devices", {
         async deleteDeviceType(id: string) {
             return await pb.collection('device_type').delete(id)
         },
+        listenToDevice: async function () {
+            this.devices = (await this.fetchDeviceList())
+            await pb.collection('device').subscribe('*', async (e) => {
+                    this.devices = (await this.fetchDeviceList())
+                },
+            );
+        },
+        fetchDeviceList: async function () {
+            return await pb.collection('device').getFullList({
+                filter: Object.values(this.filterDevice).join(" && ")
+            });
+        },
+        unsubDevice: async function () {
+            await pb.collection('device').unsubscribe('*');
+            this.deviceTypes = [];
+        },
+        addFilterDeviceByInventoryId(inventoryId: string) {
+            this.filterDevice["inventory_id"] = `inventory_id = "${inventoryId}"`
+        },
+        resetFilterDevice() {
+            this.filterDevice = {}
+        }
     }
 })

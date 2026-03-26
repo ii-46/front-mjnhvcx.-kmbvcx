@@ -1,32 +1,55 @@
 <script setup lang="ts" xmlns="http://www.w3.org/1999/html">
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import {useUsersStore} from "@/stores/users.ts";
-import {onMounted, onUnmounted, reactive} from "vue";
+import {computed, onMounted, onUnmounted, reactive, toRaw, watch} from "vue";
 import moment from "moment";
 import {useInventoryStore} from "@/stores/inventory.ts";
 import type {RecordModel} from "pocketbase";
+import {useDeviceStore} from "@/stores/device.ts";
 
+import {useI18n} from "vue-i18n";
+import _ from "lodash";
+
+
+const {t} = useI18n()
 const usersStore = useUsersStore()
 const inventoryStore = useInventoryStore()
+const deviceStore = useDeviceStore()
 
+// const {devices: deviceList} = storeToRefs(deviceStore)
 const initForm: {
   assignDate: Date,
   assigner: null | RecordModel,
   fromInventory: null | RecordModel,
   receiver: null | RecordModel,
   toInventory: null | RecordModel,
+  devices: {
+    id: string | null,
+    data: null | RecordModel
+  }[]
 } = {
   assignDate: moment().toDate(),
   assigner: null,
   fromInventory: null,
   receiver: null,
   toInventory: null,
+  devices: []
 }
 const formData = reactive(initForm)
 
-function onSubmit() {
-
-}
+watch(formData, async () => {
+  if (formData.fromInventory) {
+    deviceStore.addFilterDeviceByInventoryId(formData.fromInventory.id);
+    await deviceStore.unsubDevice()
+    await deviceStore.listenToDevice()
+  } else {
+    deviceStore.resetFilterDevice()
+    await deviceStore.unsubDevice()
+  }
+}, {
+  deep: true,
+  immediate: true,
+})
 
 onMounted(async () => {
   await usersStore.listenToUsers()
@@ -37,6 +60,24 @@ onUnmounted(async () => {
   await usersStore.unsubUsers()
   await inventoryStore.unsubInventory()
 })
+
+const selectableDevice = computed(() => {
+  console.log(formData.devices.filter(i => i.data).map(i => i.data))
+  return _.difference(deviceStore.devices, toRaw(formData.devices.filter(i => i.data).map(i => i.data) as RecordModel[]))
+})
+
+function addFormDataDeviceRow() {
+  formData.devices.push({
+    id: null,
+    data: null,
+  })
+
+}
+
+function onSubmit() {
+
+}
+
 </script>
 
 
@@ -52,7 +93,7 @@ onUnmounted(async () => {
           <v-container>
 
             <v-row>
-              <v-col>
+              <v-col sm="12" md="12" lg="5">
                 <v-label class="mb-1">
                   {{ $t("assigner") }}
                 </v-label>
@@ -87,19 +128,19 @@ onUnmounted(async () => {
                     returnObject
                 ></v-autocomplete>
               </v-col>
-              <v-col cols="1" align-self="center">
+              <v-col sm="12" md="12" lg="2" align-self="center">
                 <div class="flex justify-center">
                   <div class="flex flex-col items-center">
-                    <b>
-                      {{ $t("assign_to") }}
-                    </b>
                     <v-icon size="x-large" title="assign">
                       mdi-chevron-double-right
                     </v-icon>
+                    <b>
+                      {{ $t("assign_to") }}
+                    </b>
                   </div>
                 </div>
               </v-col>
-              <v-col>
+              <v-col sm="12" md="12" lg="5">
                 <v-label class="mb-1">
                   {{ $t("receiver") }}
                 </v-label>
@@ -142,7 +183,53 @@ onUnmounted(async () => {
             </v-row>
           </v-container>
           <v-spacer class="mt-2"></v-spacer>
-          <v-data-table-virtual>
+          <v-data-table-virtual
+              :items="formData.devices"
+              :headers="[
+                  {
+                    title: t('No.'),
+                    key: 'no',
+                    align: 'center',
+                    width: 100,
+                  },
+                  {
+                    title: t('sn'),
+                    key: 'sn',
+                  },
+                  {
+                    title: t('device-type'),
+                    key: 'device_type_id',
+                    width: 200
+                  }
+              ]"
+          >
+            <template v-slot:[`item.sn`]>
+              <v-autocomplete
+                  :items="selectableDevice"
+                  itemTitle="sn"
+                  returnObject
+              >
+
+              </v-autocomplete>
+              {{ selectableDevice[0] }}
+            </template>
+            <template v-slot:tfoot>
+              <div class="table-footer-group">
+                <tr>
+                  <td colspan="3">
+                    <div class="flex justify-center py-2">
+                      <v-btn
+                          variant="outlined"
+                          color="primary"
+                          @click="addFormDataDeviceRow"
+                      >
+                        <v-icon>mdi-plus</v-icon>
+                      </v-btn>
+                    </div>
+                  </td>
+                </tr>
+              </div>
+            </template>
           </v-data-table-virtual>
 
           <v-container class="flex justify-between mt-2">
