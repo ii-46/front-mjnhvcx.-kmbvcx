@@ -8,18 +8,11 @@ const messages = {
         ui: {
             login: "Login",
             username: "Username",
-            password: "Password"
-        }
-    },
-    lo: {
-        message: {
-            hello: 'こんにちは、世界',
+            password: "Password",
         },
-        ui: {
-            login: "ເຂົ້າສູ່ລະຍົບ",
-            username: "ຂື່ຜູ້ໃຊ້",
-            password: "ລະຫັດຜ່ານ"
-        }
+        "assign-devices": "Assign Devices",
+        "assigner": "Assigner",
+        "receiver": "Receiver"
     },
 }
 

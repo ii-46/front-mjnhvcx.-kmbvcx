@@ -7,6 +7,7 @@ import ManageDeviceView from "@/views/ManageDeviceView.vue";
 import ManageTransactionTypeView from "@/views/ManageTransactionTypeView.vue";
 import ManageInventoryView from "@/views/inventory/ManageInventoryView.vue";
 import ImportDeviceListView from "@/views/inventory/ImportDeviceListView.vue";
+import AssignDevicesView from "@/views/inventory/AssignDevicesView.vue";
 
 const routes = [
     {path: '', component: HelloWorld},
@@ -21,11 +22,12 @@ const routes = [
     {
         path: '/inventory',
         children: [
-            {path: '', redirect: "inventory/manage-device"},
-            {path: 'manage-device', component: ManageDeviceView},
-            {path: 'manage-transaction-type', component: ManageTransactionTypeView},
+            {path: '', redirect: "/inventory/manage-inventory"},
             {path: 'manage-inventory', component: ManageInventoryView},
+            {path: 'manage-device', component: ManageDeviceView},
             {path: 'import-device-list', component: ImportDeviceListView},
+            {path: 'manage-transaction-type', component: ManageTransactionTypeView},
+            {path: 'assign-devices', component: AssignDevicesView}
         ]
     },
     {path: '/taxpayer', component: HelloWorld},

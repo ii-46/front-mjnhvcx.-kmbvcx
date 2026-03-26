@@ -4,7 +4,10 @@
 import {pb} from "@/pocketbase";
 import {router} from "@/routes/routes.ts";
 import {toast} from "vue3-toastify";
+import {useI18n} from "vue-i18n";
 
+
+const {t} = useI18n()
 const drawer = defineModel({
   default: false
 })
@@ -69,11 +72,16 @@ const menuList = [
     to: "/inventory/manage-inventory",
     title: "Inventory",
     icon: 'mdi-warehouse',
-
-  },  {
+  },
+  {
     to: "/inventory/import-device-list",
     title: "Import SN list",
-    icon: 'mdi-table-arrow-left',
+    icon: 'mdi-table-arrow-left'
+  },
+  {
+    to: "/inventory/assign-devices",
+    title: t("assign-devices"),
+    icon: 'mdi-table'
   }
 ]
 
