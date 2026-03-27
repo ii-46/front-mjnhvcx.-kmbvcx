@@ -67,7 +67,8 @@ export const useDeviceStore = defineStore("devices", {
         },
         fetchDeviceList: async function () {
             return await pb.collection('device').getFullList({
-                filter: Object.values(this.filterDevice).join(" && ")
+                filter: Object.values(this.filterDevice).join(" && "),
+                expand: "type_id"
             });
         },
         unsubDevice: async function () {
