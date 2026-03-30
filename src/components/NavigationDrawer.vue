@@ -9,7 +9,7 @@ import {useI18n} from "vue-i18n";
 
 const {t} = useI18n()
 const drawer = defineModel({
-  default: false
+  default: true
 })
 
 
@@ -81,6 +81,11 @@ const menuList = [
   {
     to: "/inventory/assign-devices",
     title: t("assign-devices"),
+    icon: 'mdi-table'
+  },
+  {
+    to: "/inventory/record-transaction",
+    title: t("record-transaction"),
     icon: 'mdi-table'
   }
 ]
