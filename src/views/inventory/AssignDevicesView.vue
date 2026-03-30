@@ -1,4 +1,4 @@
-<script setup lang="ts" xmlns="http://www.w3.org/1999/html">
+<script setup lang="ts">
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import {useUsersStore} from "@/stores/users.ts";
 import {computed, onMounted, onUnmounted, reactive, ref, toRaw, watch} from "vue";
@@ -333,29 +333,29 @@ const summeryTotalSelectedDevice = computed(() => {
             </template>
 
             <template v-slot:tfoot>
-              <div class="table-footer-group">
-                <tr>
-                  <td colspan="4">
-                    <div class="flex justify-center gap-1 py-2">
-                      <v-text-field
-                          v-model="deviceRowIncrementValue"
-                          flat
-                          hide-details color="primary"
-                          density="compact"
-                          type="number"
-                          variant="underlined"
-                          max-width="80"></v-text-field>
-                      <v-btn
-                          variant="outlined"
-                          color="primary"
-                          @click="addFormDataDeviceRow(deviceRowIncrementValue)"
-                      >
-                        <v-icon>mdi-plus</v-icon>
-                      </v-btn>
-                    </div>
-                  </td>
-                </tr>
-              </div>
+              <tfoot class="table-footer-group">
+              <tr>
+                <td colspan="4">
+                  <div class="flex justify-center gap-1 py-2">
+                    <v-text-field
+                        v-model="deviceRowIncrementValue"
+                        flat
+                        hide-details color="primary"
+                        density="compact"
+                        type="number"
+                        variant="underlined"
+                        max-width="80"></v-text-field>
+                    <v-btn
+                        variant="outlined"
+                        color="primary"
+                        @click="addFormDataDeviceRow(deviceRowIncrementValue)"
+                    >
+                      <v-icon>mdi-plus</v-icon>
+                    </v-btn>
+                  </div>
+                </td>
+              </tr>
+              </tfoot>
             </template>
           </v-data-table-virtual>
 
