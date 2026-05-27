@@ -10,11 +10,16 @@ import type {RecordModel} from "pocketbase";
 import {read, utils as xlsxUtils, writeFile} from "xlsx";
 import {toast} from "vue3-toastify";
 import {pb} from "@/pocketbase";
+import {useInventoryStore} from "@/stores/inventory.ts";
+import {useRules} from "vuetify/labs/rules";
 
 const deviceStore = useDeviceStore()
 
+const rules = useRules()
 const lotDate = ref()
 const inventoryName = ref()
+const inventory = ref()
+const newInventory = ref(false)
 const deviceTypeSelected = ref([] as RecordModel[])
 
 const xlsxFileUploaded = ref({} as {
@@ -42,9 +47,11 @@ watch(deviceTypeSelected, (newValue) => {
   }
 })
 
+const inventoryStore = useInventoryStore();
 onMounted(async () => {
   await deviceStore.listenToDeviceTypes()
-  await initForm()
+  await inventoryStore.listenToInventory();
+  await initForm();
 })
 onUnmounted(() => {
   deviceStore.unsubDeviceTypes()
@@ -69,7 +76,9 @@ async function onSubmit() {
             sn: i.sn,
           })),
       lot_date: lotDate.value,
-      lot_name: inventoryName.value
+      lot_name: inventoryName.value,
+      new_inventory: newInventory.value,
+      inventory_id: inventory.value?.id || ""
     }
 
     await pb.send("api/etax/import-devices", {
@@ -167,9 +176,25 @@ async function downloadTemplateSheets(name: string) {
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field
+                    v-if="newInventory"
                     v-model="inventoryName"
-                    label="Inventory Name*"
+                    label="Enter new inventory's name"
                 ></v-text-field>
+                <v-autocomplete
+                    v-else
+                    v-model="inventory"
+                    :items="inventoryStore.inventory"
+                    :itemTitle="value =>value.name"
+                    returnObject
+                    :rules="[rules.required()]"
+                    label="Select inventory to import"
+                ></v-autocomplete>
+                <v-checkbox
+                    :hide-details="true"
+                    v-model="newInventory"
+                    label="Create new inventory"
+                    density="compact"
+                ></v-checkbox>
               </v-col>
             </v-row>
             <v-autocomplete
@@ -237,7 +262,8 @@ async function downloadTemplateSheets(name: string) {
         <div class="flex justify-between">
           <v-btn
               :disabled="loading"
-              variant="outlined" size="large" @click="router.back()">Cancel</v-btn>
+              variant="outlined" size="large" @click="router.back()">Cancel
+          </v-btn>
           <!--          <ComfirmImportSnListDialog-->
           <!--              :disabled="deviceTypeSelected.length === 0"-->
           <!--          >-->
