@@ -87,6 +87,20 @@ const menuList = [
     to: "/inventory/record-transaction",
     title: t("record-transaction"),
     icon: 'mdi-table'
+  },
+  {
+    spacer: true
+  },
+  {
+    subtitle: "Installation",
+  },
+  {
+    spacer: true
+  },
+  {
+    to: "/installation/record-installation",
+    title: t("record-installation"),
+    icon: 'mdi-table'
   }
 ]
 

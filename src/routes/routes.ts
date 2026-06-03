@@ -9,6 +9,7 @@ import ManageInventoryView from "@/views/inventory/ManageInventoryView.vue";
 import ImportDeviceListView from "@/views/inventory/ImportDeviceListView.vue";
 import AssignDevicesView from "@/views/inventory/AssignDevicesView.vue";
 import RecordTransactionView from "@/views/inventory/RecordTransactionView.vue";
+import RecordInstallationDevices from "@/views/installation/RecordInstallationDevices.vue";
 
 const routes = [
     {path: '', component: HelloWorld},
@@ -31,6 +32,13 @@ const routes = [
             {path: 'assign-devices', component: AssignDevicesView},
             {path: 'record-transaction', component: RecordTransactionView},
             // {path: 'record-installed-devices', component: AssignDevicesView}
+        ]
+    },
+    {
+        path: '/installation',
+        children: [
+            {path: '', redirect: "/installation/record-installation"},
+            {path: 'record-installation', component: RecordInstallationDevices}
         ]
     },
     {path: '/taxpayer', component: HelloWorld},
