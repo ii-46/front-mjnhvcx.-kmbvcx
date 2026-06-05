@@ -29,6 +29,8 @@ watch(authoritiesFilter, () => {
   } else {
     enterprises.value = originalEnterprise.value
   }
+}, {
+  deep: true
 })
 
 watch(enterprises, () => {
@@ -40,7 +42,6 @@ watch(enterprises, () => {
   totalOfflineDevice.value = enterprises.value.map(i => i.devices_stat.filter(j => j.onlineFlag == 0).length)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
   totalGoliveDevice.value = enterprises.value.map(i => i.devices_stat.filter(j => {
-    console.log(j["configuration"])
     const configuration = (j["configuration"]["app_config"] as any[]).find(k => k.code == "app_auto_invoice_enabled")
     return JSON.parse(configuration["matchedItem"]["value"])["enabled"]
   }).length)
@@ -137,7 +138,6 @@ async function getUpdatedSyncTime() {
       <div class="py-4">
         <v-row>
           <v-col>
-
             <v-autocomplete
                 variant="underlined"
                 :items="flatInstitutionsArray"
@@ -146,14 +146,15 @@ async function getUpdatedSyncTime() {
                 label="ກົມສ່ວຍອາກອນ"
                 v-model="authoritiesFilter"
                 returnObject
+                clearable
             ></v-autocomplete>
           </v-col>
           <v-col>
             <v-text-field
-                label="TIN, ຊື່"
+                label="ຄົ້ນຫາຕາມເລກ TIN ຫຼື ຊື່"
                 v-model="searchKey"
+                clearable
             >
-
             </v-text-field>
           </v-col>
         </v-row>
