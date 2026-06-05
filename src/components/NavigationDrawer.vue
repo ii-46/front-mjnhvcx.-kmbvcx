@@ -87,7 +87,20 @@ const menuList = [
     to: "/inventory/record-transaction",
     title: t("record-transaction"),
     icon: 'mdi-table'
-  }
+  },
+  {
+    spacer: true
+  },
+  {
+    subtitle: "Ainvoicex",
+  },
+  {
+    spacer: true
+  }, {
+    to: "/ainvoicex/overview",
+    title: t("overview"),
+    icon: 'mdi-monitor-dashboard'
+  },
 ]
 
 async function logout() {
