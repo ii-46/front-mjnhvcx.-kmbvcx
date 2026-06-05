@@ -92,6 +92,20 @@ const menuList = [
     spacer: true
   },
   {
+    subtitle: "Installation",
+  },
+  {
+    spacer: true
+  },
+  {
+    to: "/installation/record-installation",
+    title: t("record-installation"),
+    icon: 'mdi-table'
+  },
+  {
+    spacer: true
+  },
+  {
     subtitle: "Ainvoicex",
   },
   {
