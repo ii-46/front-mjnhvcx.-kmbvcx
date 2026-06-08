@@ -6,7 +6,9 @@ import {pb} from "@/pocketbase";
 import type {RecordModel} from "pocketbase";
 import {flatInstitutionsArray} from "@/constants/institutions.ts";
 import moment from "moment";
+import * as XLSX from "xlsx";
 
+// const XLSX = require("xlsx")
 
 const syncAinvoiceInfo = ref<RecordModel>()
 
@@ -35,21 +37,21 @@ watch(authoritiesFilter, () => {
 
 watch(enterprises, () => {
   totalEnterprise.value = enterprises.value.length;
-  totalRegisterDevice.value = enterprises.value.map(i => i.devices_stat.length)
+  totalRegisterDevice.value = enterprises.value.map(i => i.devices_stat?.length || 0)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
-  totalOnlineDevice.value = enterprises.value.map(i => i.devices_stat.filter(j => j.onlineFlag == 1).length)
+  totalOnlineDevice.value = enterprises.value.map(i => i.devices_stat?.filter(j => j.onlineFlag == 1).length || 0)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
-  totalOfflineDevice.value = enterprises.value.map(i => i.devices_stat.filter(j => j.onlineFlag == 0).length)
+  totalOfflineDevice.value = enterprises.value.map(i => i.devices_stat?.filter(j => j.onlineFlag == 0).length || 0)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
-  totalGoliveDevice.value = enterprises.value.map(i => i.devices_stat.filter(j => {
-    const configuration = (j["configuration"]["app_config"] as any[]).find(k => k.code == "app_auto_invoice_enabled")
+  totalGoliveDevice.value = enterprises.value.map(i => i.devices_stat?.filter(j => {
+    const configuration = (j["configuration"]["app_config"] as any[])?.find(k => k.code == "app_auto_invoice_enabled")
     return JSON.parse(configuration["matchedItem"]["value"])["enabled"]
-  }).length)
+  }).length || 0)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
-  totalDeviceNotGoliveYet.value = enterprises.value.map(i => i.devices_stat.filter(j => {
+  totalDeviceNotGoliveYet.value = enterprises.value.map(i => i.devices_stat?.filter(j => {
     const configuration = (j["configuration"]["app_config"] as any[]).find(k => k.code == "app_auto_invoice_enabled")
     return !(JSON.parse(configuration["matchedItem"]["value"])["enabled"])
-  }).length)
+  }).length || 0)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
 })
 
@@ -80,6 +82,31 @@ async function getAinvoiceUser() {
 async function getUpdatedSyncTime() {
   const record = await pb.collection('etax_sync').getOne('syncainvoicex', {});
   syncAinvoiceInfo.value = record
+}
+
+
+async function onExportToExcel() {
+  const rawData = enterprises.value;
+  const preparedData = rawData.map(i => {
+    return {
+      'TIN': i.id,
+      'Name': i.expand!.tin['name'],
+      'Province': i.expand!.tin['data']['institutionName'],
+      'Devices': i.devices_stat.length,
+      'Golive': i.devices_stat.filter(j => {
+        const configuration = (j['configuration']['app_config'] as any[]).find(k => (k.code == 'app_auto_invoice_enabled'));
+        return JSON.parse(configuration['matchedItem']['value'])['enabled']
+      }).length,
+      'Online': i.devices_stat.filter(j => j.onlineFlag == 1).length,
+      'Offline': i.devices_stat.filter(j => j.onlineFlag == 0).length,
+      'Registered at': i.expand!.tin['data']['registrationTime'],
+    }
+  })
+  const worksheet = XLSX.utils.json_to_sheet(preparedData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Dates");
+  XLSX.writeFile(workbook, `ainvoicex_report_${moment().format("DDMMYYYYHHmm")}.xlsx`, {compression: true});
+
 }
 </script>
 
@@ -154,8 +181,14 @@ async function getUpdatedSyncTime() {
                 label="ຄົ້ນຫາຕາມເລກ TIN ຫຼື ຊື່"
                 v-model="searchKey"
                 clearable
+                variant="underlined"
             >
             </v-text-field>
+          </v-col>
+          <v-col cols="2">
+            <v-btn color="primary" block append-icon="mdi-microsoft-excel" @click="onExportToExcel">
+              Export to excel
+            </v-btn>
           </v-col>
         </v-row>
       </div>
@@ -167,15 +200,15 @@ async function getUpdatedSyncTime() {
                 { title: 'TIN', key: 'tin', align: 'center'},
                 { title: 'Name', key: 'name', value: (value)=>value.expand!.tin['name']  },
                 { title: 'Province', key: 'province', value: (value)=>value.expand!.tin['data']['institutionName']  },
-                { title: 'Devices', key: 'device', value: (value)=>value.devices_stat.length  },
+                { title: 'Devices', key: 'device', value: (value)=>value.devices_stat?.length || 0  },
                 { title: 'Golive', key: 'golive', value: (value)=> {
-                  return value.devices_stat.filter(j => {
+                  return value.devices_stat?.filter(j => {
                     const configuration = (j['configuration']['app_config'] as any[]).find(k => (k.code == 'app_auto_invoice_enabled'));
                     return JSON.parse(configuration['matchedItem']['value'])['enabled']
-                    }).length}
+                    }).length || 0}
                 },
-                { title: 'Online', key: 'online', value: (value)=>value.devices_stat.filter(j => j.onlineFlag == 1).length  },
-                { title: 'Offline', key: 'offline', value: (value)=>value.devices_stat.filter(j => j.onlineFlag == 0).length  },
+                { title: 'Online', key: 'online', value: (value)=>value.devices_stat?.filter(j => j.onlineFlag == 1).length || 0  },
+                { title: 'Offline', key: 'offline', value: (value)=>value.devices_stat?.filter(j => j.onlineFlag == 0).length  || 0},
                 { title: 'Registered at', key: 'registeredAt',value: (value)=>value.expand!.tin['data']['registrationTime']},
               ]"
             fixed-header
