@@ -210,10 +210,19 @@ async function onExportToExcel() {
                 { title: 'Online', key: 'online', value: (value)=>value.devices_stat?.filter(j => j.onlineFlag == 1).length || 0  },
                 { title: 'Offline', key: 'offline', value: (value)=>value.devices_stat?.filter(j => j.onlineFlag == 0).length  || 0},
                 { title: 'Registered at', key: 'registeredAt',value: (value)=>value.expand!.tin['data']['registrationTime']},
+                { title: 'Credential', key: 'code',value: (value)=>value.enterpise_code + ', ' + value.password},
+                { title: 'Actions', key: 'action',value: (value)=>value.expand!.tin['data']['registrationTime']},
+
               ]"
             fixed-header
             :search="searchKey"
+            multi-sort
             :items="enterprises">
+          <template v-slot:item.action>
+            <v-btn prepend-icon="mdi-eye">
+              Detail
+            </v-btn>
+          </template>
 
         </v-data-table>
       </div>
