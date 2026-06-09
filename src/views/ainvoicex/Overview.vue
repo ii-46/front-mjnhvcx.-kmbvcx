@@ -199,7 +199,8 @@ async function onExportToExcel() {
             :headers="[
                 { title: 'TIN', key: 'tin', align: 'center'},
                 { title: 'Name', key: 'name', value: (value)=>value.expand!.tin['name']  },
-                { title: 'Province', key: 'province', value: (value)=>value.expand!.tin['data']['institutionName']  },
+                { title: 'Authority', key: 'authority', value: (value)=>value.expand!.tin['data']['institutionName']  },
+                { title: 'Tax mode', key: 'taxMode', value: (value)=>value.expand!.tin['data']['priceIncludesTaxFlag'] == '1' ? 'inclusive vat' : 'exclusive vat'  },
                 { title: 'Devices', key: 'device', value: (value)=>value.devices_stat?.length || 0  },
                 { title: 'Golive', key: 'golive', value: (value)=> {
                   return value.devices_stat?.filter(j => {
@@ -218,10 +219,81 @@ async function onExportToExcel() {
             :search="searchKey"
             multi-sort
             :items="enterprises">
-          <template v-slot:item.action>
-            <v-btn prepend-icon="mdi-eye">
-              Detail
-            </v-btn>
+          <template v-slot:item.action="{item}">
+            <v-dialog max-width="1200">
+              <template v-slot:activator="{ props: activatorProps }">
+                <v-btn
+                    v-bind="activatorProps"
+                    color="primary"
+                    prepend-icon="mdi-eye"
+                >
+                  Detail
+                </v-btn>
+              </template>
+
+              <template v-slot:default="{ isActive }">
+                <v-card :title="item.expand?.tin['id'] + ' - ' + item.expand?.tin['name']">
+                  <v-card-text>
+                    <span>
+                      ຈຳນວນອຸປະກອນ {{ item.devices_stat?.length || 0 }}
+                    </span>
+                    <v-data-table-virtual
+                        :headers="[
+                            {
+                              key: 'no',
+                              title: 'No.'
+                            },
+                            {
+                              'key': 'id',
+                              'title': 'ID',
+                              'align': 'start',
+                              'value': value => value?.equipmentCode || '-'
+                            },
+                            {
+                              key: 'createTime',
+                              title: 'Created at',
+                            },
+                            {
+                              key: 'loginTime',
+                              title: 'Login at'
+                            },
+                            {
+                              key: 'configuration',
+                              title: 'Configuration'
+                            }
+
+                        ]"
+                        :items="item.devices_stat.map(((i,idx) => ({...i, no: idx+1})))"
+                    >
+                      <template v-slot:item.configuration="{value}">
+                        <p>app_text_parse_rule: <b><code>{{ (value['app_config'] as []).find(i=> i.code == 'app_text_parse_rule').valueJson }}</code></b></p>
+                        <p>app_image_parse_rule: <b><code>{{ (value['app_config'] as []).find(i=> i.code == 'app_image_parse_rule').valueJson }}</code></b></p>
+                        <p>app_image_prompt: "{{ value['app_image_prompt'][value['app_image_prompt'].length -1]?.content || ''}}"</p>
+                      </template>
+
+                    </v-data-table-virtual>
+
+                    <div class="mt-4"></div>
+
+                    <v-label>
+                      Sale Order
+                    </v-label>
+                    <v-data-table>
+
+                    </v-data-table>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+
+                    <v-btn
+                        text="Close"
+                        @click="isActive.value = false"
+                    ></v-btn>
+                  </v-card-actions>
+                </v-card>
+              </template>
+            </v-dialog>
+
           </template>
 
         </v-data-table>
