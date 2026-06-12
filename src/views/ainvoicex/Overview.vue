@@ -7,6 +7,8 @@ import type {RecordModel} from "pocketbase";
 import {flatInstitutionsArray} from "@/constants/institutions.ts";
 import moment from "moment";
 import * as XLSX from "xlsx";
+import StatusChunkLine from "@/components/chart/StatusChunkLine.vue";
+import EnterpriseDetailDialog from "@/components/ainvoicex/EnterpriseDetailDialog.vue";
 
 // const XLSX = require("xlsx")
 
@@ -37,21 +39,15 @@ watch(authoritiesFilter, () => {
 
 watch(enterprises, () => {
   totalEnterprise.value = enterprises.value.length;
-  totalRegisterDevice.value = enterprises.value.map(i => i.devices_stat?.length || 0)
+  totalRegisterDevice.value = enterprises.value.map(getTotalRegisterDevices)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
-  totalOnlineDevice.value = enterprises.value.map(i => i.devices_stat?.filter(j => j.onlineFlag == 1).length || 0)
+  totalOnlineDevice.value = enterprises.value.map(getTotalOnlineDevices)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
-  totalOfflineDevice.value = enterprises.value.map(i => i.devices_stat?.filter(j => j.onlineFlag == 0).length || 0)
+  totalOfflineDevice.value = enterprises.value.map(getTotalOfflineDevices)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
-  totalGoliveDevice.value = enterprises.value.map(i => i.devices_stat?.filter(j => {
-    const configuration = (j["configuration"]["app_config"] as any[])?.find(k => k.code == "app_auto_invoice_enabled")
-    return JSON.parse(configuration["matchedItem"]["value"])["enabled"]
-  }).length || 0)
+  totalGoliveDevice.value = enterprises.value.map(getTotalGoliveDevices)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
-  totalDeviceNotGoliveYet.value = enterprises.value.map(i => i.devices_stat?.filter(j => {
-    const configuration = (j["configuration"]["app_config"] as any[]).find(k => k.code == "app_auto_invoice_enabled")
-    return !(JSON.parse(configuration["matchedItem"]["value"])["enabled"])
-  }).length || 0)
+  totalDeviceNotGoliveYet.value = enterprises.value.map(getTotalNotGoliveDevices)
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0)
 })
 
@@ -92,13 +88,10 @@ async function onExportToExcel() {
       'TIN': i.id,
       'Name': i.expand!.tin['name'],
       'Province': i.expand!.tin['data']['institutionName'],
-      'Devices': i.devices_stat.length,
-      'Golive': i.devices_stat.filter(j => {
-        const configuration = (j['configuration']['app_config'] as any[]).find(k => (k.code == 'app_auto_invoice_enabled'));
-        return JSON.parse(configuration['matchedItem']['value'])['enabled']
-      }).length,
-      'Online': i.devices_stat.filter(j => j.onlineFlag == 1).length,
-      'Offline': i.devices_stat.filter(j => j.onlineFlag == 0).length,
+      'Devices': getTotalRegisterDevices(i),
+      'Golive': getTotalGoliveDevices(i),
+      'Online': getTotalOnlineDevices(i),
+      'Offline': getTotalOnlineDevices(i),
       'Registered at': i.expand!.tin['data']['registrationTime'],
     }
   })
@@ -108,6 +101,45 @@ async function onExportToExcel() {
   XLSX.writeFile(workbook, `ainvoicex_report_${moment().format("DDMMYYYYHHmm")}.xlsx`, {compression: true});
 
 }
+
+function filterDeviceCodeOnly(i) {
+  return i.code != ""
+}
+
+function getTaxMode(i) {
+  return i.expand!.tin['data']['priceIncludesTaxFlag'] === '1' ? 'incl' : 'excl';
+}
+
+function getTotalRegisterDevices(i) {
+  return i.devices_stat?.filter(filterDeviceCodeOnly).length || 0;
+}
+
+function getTotalOnlineDevices(i) {
+  return i.devices_stat?.filter(filterDeviceCodeOnly).filter(j => j.onlineFlag == 1).length || 0;
+}
+
+function getTotalOfflineDevices(i) {
+  return i.devices_stat?.filter(filterDeviceCodeOnly).filter(j => j.onlineFlag == 0).length || 0;
+}
+
+function getTotalGoliveDevices(i) {
+  return i.devices_stat?.filter(j => {
+    const configuration = (j["configuration"]["app_config"] as any[])?.find(k => k.code == "app_auto_invoice_enabled")
+    return JSON.parse(configuration["matchedItem"]["value"])["enabled"]
+  }).length || 0;
+}
+
+function getTotalNotGoliveDevices(i) {
+  return i.devices_stat?.filter(j => {
+    const configuration = (j["configuration"]["app_config"] as any[]).find(k => k.code == "app_auto_invoice_enabled")
+    return !(JSON.parse(configuration["matchedItem"]["value"])["enabled"])
+  }).length || 0;
+}
+
+function getLastPrintedInvoiceDate(i) {
+  return i?.last_printed_invoice?.orderTime ? moment(i.orderTime).format("DD/MM/YYYY HH:ss") : "-"
+}
+
 </script>
 
 <template>
@@ -194,24 +226,22 @@ async function onExportToExcel() {
       </div>
 
 
+      <StatusChunkLine></StatusChunkLine>
       <div> <!-- table -->
         <v-data-table
             :headers="[
                 { title: 'TIN', key: 'tin', align: 'center'},
-                { title: 'Name', key: 'name', value: (value)=>value.expand!.tin['name']  },
+                { title: 'Name', key: 'name', value: (value)=>value.expand!.tin['name'] },
                 { title: 'Authority', key: 'authority', value: (value)=>value.expand!.tin['data']['institutionName']  },
-                { title: 'Tax mode', key: 'taxMode', value: (value)=>value.expand!.tin['data']['priceIncludesTaxFlag'] == '1' ? 'inclusive vat' : 'exclusive vat'  },
-                { title: 'Devices', key: 'device', value: (value)=>value.devices_stat?.length || 0  },
-                { title: 'Golive', key: 'golive', value: (value)=> {
-                  return value.devices_stat?.filter(j => {
-                    const configuration = (j['configuration']['app_config'] as any[]).find(k => (k.code == 'app_auto_invoice_enabled'));
-                    return JSON.parse(configuration['matchedItem']['value'])['enabled']
-                    }).length || 0}
-                },
-                { title: 'Online', key: 'online', value: (value)=>value.devices_stat?.filter(j => j.onlineFlag == 1).length || 0  },
-                { title: 'Offline', key: 'offline', value: (value)=>value.devices_stat?.filter(j => j.onlineFlag == 0).length  || 0},
+                { title: 'Tax mode', key: 'taxMode', value:  getTaxMode},
+                { title: 'Devices', key: 'device', value: getTotalRegisterDevices },
+                { title: 'Golive', key: 'golive', value: getTotalGoliveDevices },
+                { title: 'Online', key: 'online', value: getTotalOnlineDevices  },
+                { title: 'Last Printed', key: 'lastPrintedInvoice', value: getLastPrintedInvoiceDate  },
+                { title: 'Order Status', key: 'orderStatus', value: getLastPrintedInvoiceDate  },
+                // { title: 'Offline', key: 'offline', value: (value)=>value.devices_stat?.filter(j => j.onlineFlag == 0).length  || 0},
                 { title: 'Registered at', key: 'registeredAt',value: (value)=>value.expand!.tin['data']['registrationTime']},
-                { title: 'Credential', key: 'code',value: (value)=>value.enterpise_code + ', ' + value.password},
+                // { title: 'Credential', key: 'code',value: (value)=>value.enterpise_code + ', ' + value.password},
                 { title: 'Actions', key: 'action',value: (value)=>value.expand!.tin['data']['registrationTime']},
 
               ]"
@@ -219,81 +249,11 @@ async function onExportToExcel() {
             :search="searchKey"
             multi-sort
             :items="enterprises">
+          <template v-slot:item.orderStatus="{item}">
+            <status-chunk-line></status-chunk-line>
+          </template>
           <template v-slot:item.action="{item}">
-            <v-dialog max-width="1200">
-              <template v-slot:activator="{ props: activatorProps }">
-                <v-btn
-                    v-bind="activatorProps"
-                    color="primary"
-                    prepend-icon="mdi-eye"
-                >
-                  Detail
-                </v-btn>
-              </template>
-
-              <template v-slot:default="{ isActive }">
-                <v-card :title="item.expand?.tin['id'] + ' - ' + item.expand?.tin['name']">
-                  <v-card-text>
-                    <span>
-                      ຈຳນວນອຸປະກອນ {{ item.devices_stat?.length || 0 }}
-                    </span>
-                    <v-data-table-virtual
-                        :headers="[
-                            {
-                              key: 'no',
-                              title: 'No.'
-                            },
-                            {
-                              'key': 'id',
-                              'title': 'ID',
-                              'align': 'start',
-                              'value': value => value?.equipmentCode || '-'
-                            },
-                            {
-                              key: 'createTime',
-                              title: 'Created at',
-                            },
-                            {
-                              key: 'loginTime',
-                              title: 'Login at'
-                            },
-                            {
-                              key: 'configuration',
-                              title: 'Configuration'
-                            }
-
-                        ]"
-                        :items="item.devices_stat.map(((i,idx) => ({...i, no: idx+1})))"
-                    >
-                      <template v-slot:item.configuration="{value}">
-                        <p>app_text_parse_rule: <b><code>{{ (value['app_config'] as []).find(i=> i.code == 'app_text_parse_rule').valueJson }}</code></b></p>
-                        <p>app_image_parse_rule: <b><code>{{ (value['app_config'] as []).find(i=> i.code == 'app_image_parse_rule').valueJson }}</code></b></p>
-                        <p>app_image_prompt: "{{ value['app_image_prompt'][value['app_image_prompt'].length -1]?.content || ''}}"</p>
-                      </template>
-
-                    </v-data-table-virtual>
-
-                    <div class="mt-4"></div>
-
-                    <v-label>
-                      Sale Order
-                    </v-label>
-                    <v-data-table>
-
-                    </v-data-table>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-
-                    <v-btn
-                        text="Close"
-                        @click="isActive.value = false"
-                    ></v-btn>
-                  </v-card-actions>
-                </v-card>
-              </template>
-            </v-dialog>
-
+            <enterprise-detail-dialog :item="item"></enterprise-detail-dialog>
           </template>
 
         </v-data-table>

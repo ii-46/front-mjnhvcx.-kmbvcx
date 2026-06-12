@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import {VDateInput} from "vuetify/labs/components";
+import {VDateInput} from "vuetify/components";
 import moment from "moment";
 import {router} from "@/routes/routes.ts";
 import {onMounted, onUnmounted, ref, toRaw, watch} from "vue";
