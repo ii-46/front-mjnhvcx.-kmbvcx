@@ -32,7 +32,7 @@ export default createVuetify({
         MyDeleteBtn: VBtn
     },
     defaults: {
-        VBtn: {variant: 'evaluated',},
+        VBtn: {variant: 'evaluated'},
         VTextField: {variant: 'outlined', density: 'compact'},
         VAutocomplete: {variant: 'outlined', density: 'compact'},
         MyAddBtn: {

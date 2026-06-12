@@ -241,7 +241,7 @@ function getLastPrintedInvoiceDate(i) {
                 { title: 'Order Status', key: 'orderStatus', value: getLastPrintedInvoiceDate  },
                 // { title: 'Offline', key: 'offline', value: (value)=>value.devices_stat?.filter(j => j.onlineFlag == 0).length  || 0},
                 { title: 'Registered at', key: 'registeredAt',value: (value)=>value.expand!.tin['data']['registrationTime']},
-                // { title: 'Credential', key: 'code',value: (value)=>value.enterpise_code + ', ' + value.password},
+                // { title: 'Credential', key: 'code',: (value)=>value.enterpise_code + ', ' + value.password},
                 { title: 'Actions', key: 'action',value: (value)=>value.expand!.tin['data']['registrationTime']},
 
               ]"
